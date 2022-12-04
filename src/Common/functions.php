@@ -55,3 +55,7 @@ function dump()
         echo "\n";
     }
 }
+
+function array_first(array $array) {
+    return reset($array);
+}
