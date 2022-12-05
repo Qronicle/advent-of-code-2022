@@ -59,3 +59,7 @@ function dump()
 function array_first(array $array) {
     return reset($array);
 }
+
+function array_last(array $array) {
+    return end($array);
+}
