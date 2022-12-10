@@ -14,6 +14,9 @@ class ImageOutput
 {
     public static function strtoimg(string $string, string $filename, int $pixelSize = 5, array $colorMap = []): void
     {
+        if (!file_exists(dirname($filename))) {
+            mkdir(dirname($filename), 0777, true);
+        }
         $string = trim($string);
         $lines = explode("\n", $string);
         if (!$lines) {

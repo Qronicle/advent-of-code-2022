@@ -2,6 +2,7 @@
 
 namespace AdventOfCode\Solutions;
 
+use AdventOfCode\Common\Output\ImageOutput;
 use AdventOfCode\Common\Output\TextOutput;
 use AdventOfCode\Common\Solution\AbstractSolution;
 
@@ -42,6 +43,8 @@ class Day09 extends AbstractSolution
                         }
                     }
                 }
+                // Uncomment to generate PNG image sequence
+                // $this->renderImage($rope, -17, 304, -220, 143);
             }
         }
 
@@ -57,6 +60,24 @@ class Day09 extends AbstractSolution
         }
         echo TextOutput::map2d($map);
     }
+
+    protected int $frame = 0;
+
+    protected function renderImage(array $rope, int $lx, int $rx, int $ty, int $by): void
+    {
+        $width = $rx - $lx;
+        $height = $by - $ty;
+        $rows = array_fill($ty, $height + 1, str_repeat('.', $width + 1));
+        for ($i = count($rope) - 1; $i >= 0; $i--) {
+            $rows[$rope[$i]->y] = substr_replace($rows[$rope[$i]->y], $i ? 'o' : 'x', $rope[$i]->x + $lx, 1);
+        }
+        ImageOutput::strtoimg(implode("\n", $rows), 'var/out/9/frame-' . str_pad(++$this->frame, 6, 0, STR_PAD_LEFT) . '.png', 1, [
+            '.' => [240, 240, 240],
+            'x' => [10, 10, 10],
+            'o' => [80, 80, 80],
+        ]);
+    }
+
 }
 
 class Vector2
