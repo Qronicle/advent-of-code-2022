@@ -4,5 +4,8 @@
       "AdventOfCode\\": "src/"
     },
     "files": ["src/Common/functions.php"]
+  },
+  "require": {
+    "ext-gd": "*"
   }
 }
