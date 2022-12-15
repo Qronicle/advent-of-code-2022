@@ -15,7 +15,7 @@ $inputFilename = __DIR__ . '/var/input/day' . $day . ($inputSuffix ? '-' . $inpu
 $className = "AdventOfCode\Solutions\Day$day";
 $solution = new $className();
 $startTime = microtime(true);
-$result = $solution->solve($part, $inputFilename);
+$result = $solution->solve($part, $inputFilename, $inputSuffix);
 $endTime = microtime(true);
 
 echo $result . "\n";

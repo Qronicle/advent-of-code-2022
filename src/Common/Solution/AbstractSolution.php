@@ -11,9 +11,13 @@ namespace AdventOfCode\Common\Solution;
 abstract class AbstractSolution
 {
     protected string $rawInput;
+    protected int $aocPart;
+    protected ?string $aocInputType;
 
-    public function solve(int $part, string $inputFilename): string
+    public function solve(int $part, string $inputFilename, ?string $inputType): string
     {
+        $this->aocPart = $part;
+        $this->aocInputType = $inputType;
         $method = 'solvePart' . $part;
         $this->rawInput = file_get_contents($inputFilename);
         return $this->$method();
