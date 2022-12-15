@@ -20,3 +20,4 @@ $endTime = microtime(true);
 
 echo $result . "\n";
 echo "\e[90mDuration: " . round($endTime - $startTime, 5) . " sec\n";
+echo "Memory: " . round(memory_get_peak_usage() / (1024 * 1024), 2) . " MB\n";
