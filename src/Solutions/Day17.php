@@ -10,23 +10,12 @@ class Day17 extends AbstractSolution
 {
     protected function solvePart1(): string
     {
-        $inputs = str_split($this->rawInput);
-        $numInputs = count($inputs);
-        $inputIndex = 0;
-        $tetris = new Tetris(2022);
-        try {
-            while (true) {
-                $tetris->move($inputs[$inputIndex++ % $numInputs]);
-                $tetris->fall();
-            }
-        } catch (ShapeLimitExceededException) {
-            return $tetris->getHeight();
-        }
+        return (new Tetris(2022))->run(str_split($this->rawInput));
     }
 
     protected function solvePart2(): string
     {
-        //
+        return (new Tetris(1000000000000))->run(str_split($this->rawInput));
     }
 }
 
@@ -34,6 +23,8 @@ class Tetris
 {
     public const MOVE_LEFT  = '<';
     public const MOVE_RIGHT = '>';
+
+    protected array $lineStates = [];
 
     protected array $shapes = [
         0 => [
@@ -71,14 +62,42 @@ class Tetris
     protected ?Shape $currentShape = null;
     protected array $shapePos;
 
+    protected int $inputIndex = -1;
+
     protected array $map;
 
     public function __construct(
-        protected readonly ?int $maxShapes = null,
+        protected int $maxShapes,
     ) {
         $this->shapes = array_map(fn(array $shape) => new Shape(...$shape), $this->shapes);
         $this->map = [0 => []];
-        $this->spawnBlock();
+    }
+
+    public function run(array $input): int
+    {
+        $numInputs = count($input);
+        try {
+            $this->spawnBlock();
+            while (true) {
+                $this->inputIndex = ++$this->inputIndex % $numInputs;
+                $this->move($input[$this->inputIndex]);
+                try {
+                    $this->fall();
+                } catch (RepetitionException $ex) {
+                    $numShapesPerRepetition = $this->numShapes - $ex->firstNumShapes;
+                    $heightPerRepetition = $this->bottom - $ex->firstBottom;
+                    $numRepetitions = floor(($this->maxShapes - $ex->firstNumShapes) / $numShapesPerRepetition);
+                    $remainingTurns = ($this->maxShapes - $ex->firstNumShapes) % $numShapesPerRepetition;
+                    // Update internal counters
+                    $this->maxShapes = $this->numShapes + $remainingTurns;
+                    $this->bottom = 0;
+                    $this->lineStates = [];
+                    return $ex->firstBottom + ($numRepetitions * $heightPerRepetition) + $this->run($input);
+                }
+            }
+        } catch (ShapeLimitExceededException) {
+            return $this->getHeight();
+        }
     }
 
     public function move(string $move): void
@@ -104,7 +123,7 @@ class Tetris
 
     public function fall(): bool
     {
-        if ($this->shapePos[1] == $this->bottom) {
+        if ($this->shapePos[1] == 0) {
             $this->freezeCurrentShape();
             return false;
         }
@@ -124,6 +143,27 @@ class Tetris
             $this->map[$coords[1] + $this->shapePos[1]][$coords[0] + $this->shapePos[0]] = true;
             $this->height = max($this->height, $this->shapePos[1] + $this->currentShape->height);
         }
+        // Check for solid line
+        for ($y = $this->shapePos[1] + $this->currentShape->height - 1; $y >= $this->shapePos[1]; $y--) {
+            if (count($this->map[$y]) == $this->width) {
+                array_splice($this->map, 0, $y + 1);
+                $this->bottom += $y + 1;
+                $this->height -= $y + 1;
+                $state = json_encode([
+                    'shape' => $this->numShapes % 5,
+                    'input' => $this->inputIndex,
+                    'map'   => $this->map
+                ]);
+                if (isset($this->lineStates[$state])) {
+                    throw new RepetitionException($this, ...$this->lineStates[$state]);
+                }
+                $this->lineStates[$state] = [
+                    'firstBottom'    => $this->bottom,
+                    'firstNumShapes' => $this->numShapes,
+                ];
+                break;
+            }
+        }
         $this->spawnBlock();
     }
 
@@ -140,29 +180,17 @@ class Tetris
 
     public function renderToScreen(): void
     {
-        $top = $this->currentShape ? ($this->currentShape->height + $this->shapePos[1] + 1) : ($this->height + 1);
-        dump('');
-        $map = array_reverse(
-            array_fill($this->bottom, $top - $this->bottom, array_fill(0, $this->width, '.')),
-            true
-        );
-        foreach ($this->map as $y => $row) {
-            foreach ($row as $x => $tmp) {
-                $map[$y][$x] = '#';
-            }
-        }
+        $top = max($this->height + 1, $this->currentShape ? $this->currentShape->height + $this->shapePos[1] + 1 : 0);
+        $extra = null;
         if ($this->currentShape) {
-            foreach ($this->currentShape->allBlocks as $coords) {
-                $map[$coords[1] + $this->shapePos[1]][$coords[0] + $this->shapePos[0]] = '@';
-            }
+            $extra = ['@' => ['coords' => $this->currentShape->allBlocks, 'offset' => $this->shapePos]];
         }
-        $map[] = array_fill(0, $this->width, "=");
-        echo TextOutput::map2d($map);
+        echo TextOutput::incompleteMap($this->map, ['h' => $top, 'w' => $this->width], '.', $extra, true);
     }
 
     public function getHeight(): int
     {
-        return $this->height;
+        return $this->bottom + $this->height;
     }
 }
 
@@ -182,4 +210,15 @@ class Shape
 
 class ShapeLimitExceededException extends Exception
 {
+}
+
+class RepetitionException extends Exception
+{
+    public function __construct(
+        public readonly Tetris $tetris,
+        public readonly int $firstBottom,
+        public readonly int $firstNumShapes,
+    ) {
+        parent::__construct();
+    }
 }
