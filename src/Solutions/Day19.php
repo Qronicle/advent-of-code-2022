@@ -55,7 +55,12 @@ class Day19 extends AbstractSolution
             $newPermutations = [];
             foreach ($permutations as $permutation => $tmp) {
                 list($robots, $resources) = json_decode($permutation);
-                if ($maxGeodes - $resources[self::GEODE] > 20) {
+                $permutationMaxGeodes = $resources[self::GEODE];
+                $permutationMaxGeodeRobots = $robots[self::GEODE];
+                for ($t = $time+1; $t > 0; $t--) {
+                    $permutationMaxGeodes += $t * $permutationMaxGeodeRobots++;
+                }
+                if ($permutationMaxGeodes < $maxGeodes) {
                     continue;
                 }
                 $numRobotPermutationsCreated = 0;
@@ -90,7 +95,7 @@ class Day19 extends AbstractSolution
             }
             $permutations = $newPermutations;
         }
-        return $permutations ? max($permutations) : 0;
+        return $maxGeodes;
     }
 
     protected function getBlueprints(): array
