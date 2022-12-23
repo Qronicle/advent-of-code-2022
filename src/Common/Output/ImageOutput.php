@@ -52,6 +52,17 @@ class ImageOutput
         $height = count($map);
         $img = imagecreate($width * $pixelSize, $height * $pixelSize);
         $colors = [];
+
+        // Find x & y offset
+        $xOffset = $yOffset = 0;
+        foreach ($map as $y => $row) {
+            $yOffset = -$y;
+            foreach ($row as $x => $value) {
+                $xOffset -= $x;
+                break 2;
+            }
+        }
+
         foreach ($map as $y => $row) {
             foreach ($row as $x => $value) {
                 if (isset($colors[$value])) {
@@ -64,7 +75,14 @@ class ImageOutput
                     }
                     $colors[$value] = $color;
                 }
-                imagefilledrectangle($img, $x * $pixelSize, $y * $pixelSize, $x * $pixelSize + $pixelSize, $y * $pixelSize + $pixelSize, $color);
+                imagefilledrectangle(
+                    $img,
+                    ($x + $xOffset) * $pixelSize,
+                    ($y + $yOffset) * $pixelSize,
+                    ($x + $xOffset) * $pixelSize + $pixelSize,
+                    ($y + $yOffset) * $pixelSize + $pixelSize,
+                    $color
+                );
             }
         }
         imagepng($img, $filename);
