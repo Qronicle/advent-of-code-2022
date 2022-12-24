@@ -16,7 +16,10 @@ class TextOutput
     {
         $output = '';
         foreach ($map as $row) {
-            $output .= implode('', $row) . "\n";
+            foreach ($row as $val) {
+                $output .= is_string($val) ? $val : ($val ? '.' : '#');
+            }
+            $output .= "\n";
         }
         return $output;
     }
