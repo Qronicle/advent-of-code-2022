@@ -113,7 +113,7 @@ class Day23 extends AbstractSolution
             // $this->render($map, $i + 1);
             // Part 2 ends here
             if ($static) {
-                ImageOutput::pngSequenceToGif('var/out/23', 'aoc-23.gif');
+                // ImageOutput::pngSequenceToGif('var/out/23', 'aoc-23.gif');
                 return $i + 1;
             }
         }
