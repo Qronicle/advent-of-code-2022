@@ -33,8 +33,6 @@ class Day24 extends AbstractSolution
         $min = new Vector2(1, 1);
         $max = new Vector2(count($emptyMap[0]) - 2, count($emptyMap) - 2);
         $targetY = $position->y == 0 ? $max->y + 1 : 0;
-        // $maxAtPosition = least_common_multiple(count($emptyMap[0]) - 2, count($emptyMap) - 2);
-        // $firstStepAtPosition = [$position->y => [$position->x => 0]];
         $positions = [$position];
         $step = 0;
         while (++$step) {
@@ -62,15 +60,6 @@ class Day24 extends AbstractSolution
                 foreach ($dirs as $dir) {
                     if (!empty($map[$pos->y + $dir->y][$pos->x + $dir->x])) {
                         $newPos = new Vector2($pos->x + $dir->x, $pos->y + $dir->y);
-                        /*/ Don't allow going to this position if this means repeating history
-                        if (isset($firstStepAtPosition[$newPos->y][$newPos->x])) {
-                            if ($step > $firstStepAtPosition[$newPos->y][$newPos->x] + $maxAtPosition) {
-                                echo "truncation!\n";
-                                continue;
-                            }
-                        } else {
-                            $firstStepAtPosition[$newPos->y][$newPos->x] = $step;
-                        } //*/
                         // Check whether we're at the target
                         if ($newPos->y == $targetY) {
                             return $step;
